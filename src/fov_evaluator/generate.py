@@ -1,6 +1,9 @@
 """Helper classes for generating images."""
 
-from dataclasses import asdict, dataclass
+import logging
+from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -26,33 +29,6 @@ class GenerateArgs:
 
     def get_name(self) -> str:
         """Construct name."""
-        return f"fov{self.fov}ra{self.ra}roll{self.roll}de{self.de}.png"
-
-    def to_args(self) -> list:
-        """Generate a list of arguments from the class fields."""
-        arg_map = {
-            "false_stars": "--generate-false-stars",
-            "zero_mag_photons": "--generate-zero-mag-photons",
-            "saturation_photons": "--generate-saturation-photons",
-            "dark_current": "--generate-dark-current",
-            "exposure": "--generate-exposure",
-            "read_noise": "--generate-read-noise",
-            "x_res": "--generate-x-resolution",
-            "y_res": "--generate-y-resolution",
-            "fov": "--fov",
-            "ra": "--generate-ra",
-            "de": "--generate-de",
-            "roll": "--generate-roll",
-        }
-
-        # flatten the class
-        args = ["pipeline", "--generate", "1"]
-        for arg, value in asdict(self).items():
-            args.append(arg_map[arg])
-            args.append(str(value))
-        args.append("--plot-raw-input")
-
-        # append file name
-        args.append(self.get_name())
-
-        return args
+        name = f"fov{self.fov}ra{self.ra}roll{self.roll}de{self.de}.png"
+        logger.debug(name)
+        return name
