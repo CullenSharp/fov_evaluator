@@ -1,6 +1,7 @@
 """Serves as the translation layer to the LOST cli."""
 
 from dataclasses import asdict
+from pathlib import Path
 from typing import ClassVar
 
 from .generate import GenerateArgs
@@ -34,6 +35,6 @@ class LostCLIAdapter:
         args.append("--plot-raw-input")
 
         # append file name
-        args.append(cfg.get_name())
+        args.append(f"{Path.cwd() / 'imgs' / f'fov{cfg.fov}' / cfg.get_name()}")
 
         return args
