@@ -35,6 +35,8 @@ class GenerateArgs:
             "zero_mag_photons": "--generate-zero-mag-photons",
             "saturation_photons": "--generate-saturation-photons",
             "dark_current": "--generate-dark-current",
+            "exposure": "--generate-exposure",
+            "read_noise": "--generate-read-noise",
             "x_res": "--generate-x-resolution",
             "y_res": "--generate-y-resolution",
             "fov": "--fov",
