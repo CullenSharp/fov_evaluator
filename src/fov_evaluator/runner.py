@@ -2,30 +2,24 @@
 
 import argparse
 import subprocess
-from pathlib import Path
+from importlib.resources import path
 
 
 class LOST:
     """Primary interface for lost."""
-
-    cli: Path
-
-    def __init__(self) -> None:
-        """Find cli."""
-        self.cli = Path(__file__).parents[1] / "lost"
-
-        # check for existence
-        if not self.cli.exists():
-            raise RuntimeError(f"Can't find {self.cli}.")
 
     def run(self, args: list, *, dry_run: bool = False) -> None:
         """Do work."""
         if dry_run:
             print(args)
         else:
-            subprocess.run(
-                args=[str(self.cli), *args], cwd=self.cli.parent, check=True, capture_output=True
-            )
+            with path("fov_evaluator.lost", "lost") as cli:
+                subprocess.run(
+                    args=[str(cli), *args],
+                    cwd=cli.parent,
+                    check=True,
+                    capture_output=True,
+                )
 
 
 def run() -> None:
@@ -35,3 +29,6 @@ def run() -> None:
 
     args = parser.parse_args()
     print(args.verbose)
+
+    lost = LOST()
+    lost.run(['args'])

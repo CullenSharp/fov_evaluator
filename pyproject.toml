@@ -6,12 +6,14 @@ build-backend = "setuptools.build_meta"
 name = "fov-evaluator"
 version = "0.1"
 
-
 [project.optional-dependencies]
 dev = ["mypy >= 1.19.1", "ruff >= 0.15.0"]
 
 [project.scripts]
 run = "fov_evaluator:run"
+
+[tool.setuptools.package-data]
+"fov_evaluator.lost" = ["lost", "bright-star-catalog.tsv"]
 
 [tool.ruff]
 line-length = 100
