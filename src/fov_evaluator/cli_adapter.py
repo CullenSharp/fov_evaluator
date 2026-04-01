@@ -1,10 +1,13 @@
 """Serves as the translation layer to the LOST cli."""
 
+import logging
 from dataclasses import asdict
 from pathlib import Path
 from typing import ClassVar, overload
 
 from fov_evaluator.config import DatabaseArgs, EstimateArgs, GenerateArgs
+
+logger = logging.getLogger(__name__)
 
 
 class LostCLIAdapter:
@@ -52,7 +55,7 @@ class LostCLIAdapter:
                 args.append(cls.arg_map[arg])
                 args.append(str(value))
         if isinstance(cfg, GenerateArgs):
-            args = ["--generate", "1"]
+            args += ["--generate", "1"]
             for arg, value in asdict(cfg).items():
                 args.append(cls.arg_map[arg])
                 args.append(str(value))
@@ -67,4 +70,6 @@ class LostCLIAdapter:
             for arg, value in asdict(cfg).items():
                 args.append(cls.arg_map[arg])
                 args.append(str(value))
+
+        logger.debug(args)
         return args

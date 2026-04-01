@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 class LOST:
     """Primary interface for lost."""
 
-    def run(self, args: list[str]) -> subprocess.CompletedProcess:
+    @staticmethod
+    def run(args: list[str]) -> subprocess.CompletedProcess:
         """Do work."""
         with path("fov_evaluator.lost", "lost") as cli:
             return subprocess.run(
@@ -24,13 +25,15 @@ class LOST:
                 capture_output=True,
             )
 
-    def generate(self, cfg: GenerateArgs) -> subprocess.CompletedProcess:
-        """Generate an image."""
+    @classmethod
+    def generate(cls, cfg: GenerateArgs) -> subprocess.CompletedProcess:
+        """Generate synthetic input (imgs) from the lost pipeline."""
         args = LostCLIAdapter.build_args(cfg)
         logger.debug(args)
-        return self.run(args)
+        return cls.run(args)
 
-    def comprehensive(self) -> None:
+    @classmethod
+    def comprehensive(cls) -> None:
         """Generate images, db, and estimates."""
 
 
@@ -43,3 +46,7 @@ def run() -> None:
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    logger.info("Running")
+
+    # for testing, run generate with default args
+    LOST.generate(GenerateArgs())
