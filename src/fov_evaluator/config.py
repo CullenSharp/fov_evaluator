@@ -17,10 +17,17 @@ class GenerateArgs:
     exposure: float = 0.2
     read_noise: float = 0.02
 
-    # orientation params
-    fov: int = 30  # angular field of view
-    ra: int = 88  # right ascenion
-    de: int = 0  # declination
+    """
+    orientation params
+    declination: [-90 deg, 90 deg] --> [-pi/2 rad, pi/2 rad]
+                 where negative means south
+                 of the celestial equator and positive means north
+    right ascenion: [0 deg, 360 deg] --> [0 rad, 2pi rad ]
+    roll: [0 rad, 2 pi rad]ms
+    """
+    fov: int = 30
+    ra: int = 88
+    de: int = 0
     roll: int = 7
 
     # image size

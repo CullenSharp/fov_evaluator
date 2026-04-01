@@ -1,13 +1,14 @@
 """Serves as the main entry point for the evaluator."""
 
 import argparse
+import logging
 import subprocess
 from importlib.resources import path
-from pathlib import Path
-import logging
 
 from fov_evaluator.cli_adapter import LostCLIAdapter
 from fov_evaluator.generate import GenerateArgs
+
+logger = logging.getLogger(__name__)
 
 
 class LOST:
@@ -29,6 +30,9 @@ class LOST:
         logger.debug(args)
         return self.run(args)
 
+    def comprehensive(self) -> subprocess.CompletedProcess:
+
+
 
 def run() -> None:
     """Cli entry point."""
@@ -39,10 +43,3 @@ def run() -> None:
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
-
-    gen_args = GenerateArgs()
-    lost = LOST()
-    lost.generate(gen_args)
-
-
-logger = logging.getLogger(__name__)
