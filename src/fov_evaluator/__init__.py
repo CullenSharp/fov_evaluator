@@ -1,5 +1,5 @@
 """Does something I swear."""
 
-from .runner import run
+from fov_evaluator.api import run
 
 __all__ = ["run"]

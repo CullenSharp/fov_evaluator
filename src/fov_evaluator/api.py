@@ -6,7 +6,7 @@ import subprocess
 from importlib.resources import path
 
 from fov_evaluator.cli_adapter import LostCLIAdapter
-from fov_evaluator.generate import GenerateArgs
+from fov_evaluator.config import GenerateArgs
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +30,8 @@ class LOST:
         logger.debug(args)
         return self.run(args)
 
-    def comprehensive(self) -> subprocess.CompletedProcess:
-
+    def comprehensive(self) -> None:
+        """Generate images, db, and estimates."""
 
 
 def run() -> None:
