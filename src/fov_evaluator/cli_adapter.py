@@ -2,15 +2,15 @@
 
 from dataclasses import asdict
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, overload
 
-from .generate import GenerateArgs
+from fov_evaluator.config import DatabaseArgs, EstimateArgs, GenerateArgs
 
 
 class LostCLIAdapter:
     """Translation layer to lost cli."""
 
-    arg_map: ClassVar[dict] = {
+    arg_map: ClassVar[dict[str, str]] = {
         "false_stars": "--generate-false-stars",
         "zero_mag_photons": "--generate-zero-mag-photons",
         "saturation_photons": "--generate-saturation-photons",
@@ -25,16 +25,46 @@ class LostCLIAdapter:
         "roll": "--generate-roll",
     }
 
+    @overload
+    @classmethod
+    def build_args(cls, cfg: EstimateArgs) -> list[str]:
+        pass
+
+    @overload
     @classmethod
     def build_args(cls, cfg: GenerateArgs) -> list[str]:
+        pass
+
+    @overload
+    @classmethod
+    def build_args(cls, cfg: DatabaseArgs) -> list[str]:
+        pass
+
+    @classmethod
+    def build_args(cls, cfg: EstimateArgs | GenerateArgs | DatabaseArgs) -> list[str]:
         """Build argument list."""
-        args = ["pipeline", "--generate", "1"]
-        for arg, value in asdict(cfg).items():
-            args.append(cls.arg_map[arg])
-            args.append(str(value))
-        args.append("--plot-raw-input")
+        # assume that the input is for the pipeline subcommand
+        args: list[str] = ["pipeline"]
 
-        # append file name
-        args.append(f"{Path.cwd() / 'imgs' / f'fov{cfg.fov}' / cfg.get_name()}")
+        # inputs to pipeline subcommand
+        if isinstance(cfg, EstimateArgs):
+            for arg, value in asdict(cfg).items():
+                args.append(cls.arg_map[arg])
+                args.append(str(value))
+        if isinstance(cfg, GenerateArgs):
+            args = ["--generate", "1"]
+            for arg, value in asdict(cfg).items():
+                args.append(cls.arg_map[arg])
+                args.append(str(value))
+            args.append("--plot-raw-input")
 
+            # append file name
+            args.append(f"{Path.cwd() / 'imgs' / f'fov{cfg.fov}' / cfg.get_name()}")
+
+        if isinstance(cfg, DatabaseArgs):
+            # redirect arguments to the database subcommand
+            args[0] = "database"
+            for arg, value in asdict(cfg).items():
+                args.append(cls.arg_map[arg])
+                args.append(str(value))
         return args
