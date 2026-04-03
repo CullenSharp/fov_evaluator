@@ -14,6 +14,8 @@ def do_eval(args: argparse.Namespace) -> None:
     if args.all:
         logger.info("Running evaluation for 20, 30, and 45 deg FOV")
         api.comprehensive()
+    else:
+        logger.error("Invalid argument. Try run eval --help")
 
 
 def do_clean(args: argparse.Namespace) -> None:
@@ -32,6 +34,8 @@ def do_clean(args: argparse.Namespace) -> None:
             logger.info("Cleaning out old tables")
             for table in (Path.cwd() / "data").glob("*.csv"):
                 table.unlink()
+    else:
+        logger.error("Invalid argument. Try run clean --help")
 
 
 def main() -> None:
