@@ -26,6 +26,14 @@ class LostCLIAdapter:
         "ra": "--generate-ra",
         "de": "--generate-de",
         "roll": "--generate-roll",
+        "kvector_max_distance": "--kvector-max-distance",
+        "min_mag": "--min-mag",
+        "centroid_algo": "--centroid-algo",
+        "star_id_algo": "--star-id-algo",
+        "attitude_algo": "--attitude-algo",
+        "output_path": "--output",
+        "database": "--database",
+        "angular_tolerance": "--angular-tolerance",
     }
 
     @overload
@@ -47,29 +55,31 @@ class LostCLIAdapter:
     def build_args(cls, cfg: EstimateArgs | GenerateArgs | DatabaseArgs) -> list[str]:
         """Build argument list."""
         # assume that the input is for the pipeline subcommand
-        args: list[str] = ["pipeline"]
+        args: list[str] = []
 
         # inputs to pipeline subcommand
         if isinstance(cfg, EstimateArgs):
             for arg, value in asdict(cfg).items():
                 args.append(cls.arg_map[arg])
                 args.append(str(value))
+            args.append("--print-attitude=-")
         if isinstance(cfg, GenerateArgs):
-            args += ["--generate", "1"]
+            args.append("pipeline")
+            args.append("--generate=1")
             for arg, value in asdict(cfg).items():
                 args.append(cls.arg_map[arg])
                 args.append(str(value))
             args.append("--plot-raw-input")
 
             # append file name
-            args.append(f"{Path.cwd() / 'imgs' / f'fov{cfg.fov}' / cfg.get_name()}")
+            args.append(f"{Path.cwd() / 'imgs' / f'fov{cfg.fov}' / cfg.get_fname()}")
 
         if isinstance(cfg, DatabaseArgs):
             # redirect arguments to the database subcommand
-            args[0] = "database"
+            args.append("database")
+            args.append("--kvector")
             for arg, value in asdict(cfg).items():
                 args.append(cls.arg_map[arg])
                 args.append(str(value))
 
-        logger.debug(args)
         return args

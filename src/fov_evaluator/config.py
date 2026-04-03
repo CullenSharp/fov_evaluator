@@ -24,21 +24,21 @@ class GenerateArgs:
     dark_current: float = 0.25
     exposure: float = 0.2
     read_noise: float = 0.02
-    fov: int = 30
+    fov: int = 20
 
     # orientation params
-    ra: int = 88
-    de: int = 0
-    roll: int = 7
+    ra: float = 88.0
+    de: float = 0.0
+    roll: float = 7.0
 
     # image size
     x_res: int = 1024
     y_res: int = 1024
 
-    def get_name(self) -> str:
-        """Construct name."""
-        name = f"fov{self.fov}ra{self.ra}roll{self.roll}de{self.de}.png"
-        logger.debug(name)
+    def get_fname(self) -> str:
+        """Construct file name."""
+        name = f"fov{self.fov}ra{int(self.ra)}roll{int(self.roll)}de{int(self.de)}.png"
+        logger.debug("Generated filename %s:", name)
         return name
 
 
@@ -46,7 +46,17 @@ class GenerateArgs:
 class DatabaseArgs:
     """Configuration object for generating databases."""
 
+    output_path: str = ""
+    kvector_max_distance: int = 25
+    min_mag: float = 5.0
+
 
 @dataclass
 class EstimateArgs:
     """Configuration object for generating estimates."""
+
+    centroid_algo: str = "cog"
+    star_id_algo: str = "py"
+    attitude_algo: str = "dqm"
+    angular_tolerance: float = 0.03
+    database: str = ""
