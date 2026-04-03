@@ -5,8 +5,8 @@ import logging
 import random
 import re
 import subprocess
+from collections.abc import Iterable
 from importlib.resources import path
-from math import pi
 from pathlib import Path
 
 from fov_evaluator.cli_adapter import LostCLIAdapter
@@ -15,6 +15,47 @@ from fov_evaluator.config import DatabaseArgs, EstimateArgs, GenerateArgs
 logger = logging.getLogger(__name__)
 
 lost_output_re: re.Pattern[str] = re.compile(r"^([a-z0-9_]+) ([a-z0-9.-]+)$")
+
+
+def progress_bar(
+    iteration: int,
+    total: int,
+    decimals: int = 1,
+    length: int = 100,
+) -> str:
+    """Return a progress_bar."""
+    fill: str = "█"
+    percent = f"{100 * (iteration / float(total)):.{decimals}f}"
+    filled_length = int(length * iteration // total)
+    bar = fill * filled_length + "-" * (length - filled_length)
+    return f"|{bar}| {percent}%"
+
+
+def attitudes_to_csv(name: str, attitudes: Iterable) -> None:
+    """Write data to a csv given a path."""
+    with (Path.cwd() / "data" / f"{name}.csv").open("w+", newline="") as spreadsheet:
+        attitude_writer = csv.writer(spreadsheet)
+        attitude_writer.writerow(["right ascension (deg)", "declination (deg)", "roll (deg)"])
+        for attitude in attitudes:
+            attitude_writer.writerow(attitude)
+
+
+def synthesize_attitudes(n: int = 100) -> list[tuple[float, float, float]]:
+    """Create n random attitudes.
+
+    ra in [0, 360] deg
+    de in [-90, 90] deg
+    roll in [0, 360] deg
+    """
+    synthetic_attitudes: list[tuple[float, float, float]] = []
+    for _ in range(n):
+        ra = round(random.random() * 360, ndigits=6)  # noqa: S311
+        de = round(2 * (random.random() - 0.5) * 90, ndigits=6)  # noqa: S311
+        roll = round(random.random() * 360, ndigits=6)  # noqa: S311
+
+        synthetic_attitudes.append((ra, de, roll))
+
+    return synthetic_attitudes
 
 
 def run_lost(args: list[str]) -> subprocess.CompletedProcess:
@@ -36,22 +77,11 @@ def generate(cfg: GenerateArgs) -> subprocess.CompletedProcess:
 
 def comprehensive() -> None:
     """Generate images, db, and estimates."""
-    synthetic_attitudes: list[tuple[float, float, float]] = []
     fovs: list[int] = [20, 30, 45]
 
     # generate random attitudes
-    with Path("synthetic_attitudes.csv").open("w+", newline="") as spreadsheet:
-        attitude_writer = csv.writer(spreadsheet)
-
-        # write table header
-        attitude_writer.writerow(["right ascension (deg)", "declination (deg)", "roll (deg)"])
-        for _ in range(100):
-            ra = round(random.random() * 360, ndigits=2)  # noqa: S311
-            de = round(2 * (random.random() - 0.5) * 90, ndigits=2)  # noqa: S311
-            roll = round(random.random() * 360, ndigits=2)  # noqa: S311
-
-            synthetic_attitudes.append((ra, de, roll))
-            attitude_writer.writerow((ra, de, roll))
+    synthetic_attitudes: list[tuple[float, float, float]] = synthesize_attitudes(n=100)
+    attitudes_to_csv(name="synthetic_attitudes", attitudes=synthetic_attitudes)
 
     for fov in fovs:
         estimated_attitudes: list[tuple[float, float, float]] = []
@@ -70,7 +100,7 @@ def comprehensive() -> None:
             run_lost(db_args)
 
         logger.info("Generating images and estimates")
-        for attitude in synthetic_attitudes:
+        for iteration, attitude in enumerate(synthetic_attitudes):
             ra, de, roll = attitude
             args = LostCLIAdapter.build_args(
                 GenerateArgs(fov=fov, ra=ra, de=de, roll=roll)
@@ -100,14 +130,14 @@ def comprehensive() -> None:
                     )
                 )
             else:
-                # if miss id'd write bogus results
+                # if miss write bogus results
                 estimated_attitudes.append((9999.0, 9999.0, 9999.0))
 
-        logger.info("Writing results to tables")
-        with Path(f"fov{fov}_estimated_attitudes.csv").open("w+", newline="") as spreadsheet:
-            attitude_writer = csv.writer(spreadsheet)
+            # show progress
+            logger.info(progress_bar(iteration=iteration + 1, total=100))
 
-            # write table header
-            attitude_writer.writerow(["right ascension (deg)", "declination (deg)", "roll (deg)"])
-            for attitude in estimated_attitudes:
-                attitude_writer.writerow(attitude)
+        logger.info("Writing results to tables")
+        attitudes_to_csv(name=f"fov{fov}_estimated_attitudes", attitudes=estimated_attitudes)
+        logger.info("\n")
+
+    logger.info("Done!")
