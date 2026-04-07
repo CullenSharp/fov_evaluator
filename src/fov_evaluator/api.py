@@ -75,7 +75,7 @@ def generate(cfg: GenerateArgs) -> subprocess.CompletedProcess:
     return run_lost(args)
 
 
-def comprehensive() -> None:
+def comprehensive(*, noisey: bool = False) -> None:
     """Generate images, db, and estimates."""
     fovs: list[int] = [20, 30, 45]
 
@@ -88,7 +88,7 @@ def comprehensive() -> None:
         db_path = Path.cwd() / "dbs" / f"fov{fov}.dat"
 
         # remove all previous images
-        logger.info("Running simulation for %d deg FOV", fov)
+        logger.info("Running evaluation for %d deg FOV", fov)
         logger.info("Removing images from previous run")
         for img in (Path.cwd() / "imgs" / f"fov{fov}").glob("*.png"):
             img.unlink()
@@ -96,15 +96,38 @@ def comprehensive() -> None:
         logger.info("Generating database")
         # generate database
         if not db_path.exists():
-            db_args = LostCLIAdapter.build_args(DatabaseArgs(output_path=str(db_path)))
+            db_args = LostCLIAdapter.build_args(
+                DatabaseArgs(kvector_max_distance=fov, output_path=str(db_path))
+            )
             run_lost(db_args)
 
         logger.info("Generating images and estimates")
         for iteration, attitude in enumerate(synthetic_attitudes):
             ra, de, roll = attitude
-            args = LostCLIAdapter.build_args(
-                GenerateArgs(fov=fov, ra=ra, de=de, roll=roll)
-            ) + LostCLIAdapter.build_args(EstimateArgs(database=str(db_path)))
+            if not noisey:
+                args = LostCLIAdapter.build_args(
+                    GenerateArgs(fov=fov, ra=ra, de=de, roll=roll)
+                ) + LostCLIAdapter.build_args(EstimateArgs(database=str(db_path)))
+            else:
+                args = LostCLIAdapter.build_args(
+                    GenerateArgs(
+                        dark_current=0.25,
+                        de=de,
+                        de_motion_blur=0,
+                        read_noise=0.05,
+                        exposure=0.2,
+                        false_stars=400,
+                        fov=fov,
+                        ra=ra,
+                        ra_motion_blur=0.3,
+                        roll=roll,
+                        roll_motion_blur=4,
+                        saturation_photons=25,
+                        zero_mag_photons=10_000,
+                    )
+                ) + LostCLIAdapter.build_args(
+                    EstimateArgs(brightest_filter=12, database=str(db_path), mag_filter=5)
+                )
             lost_output = run_lost(args)
 
             # extract results
@@ -134,10 +157,14 @@ def comprehensive() -> None:
                 estimated_attitudes.append((9999.0, 9999.0, 9999.0))
 
             # show progress
-            logger.info(progress_bar(iteration=iteration + 1, total=100))
+            print(
+                f"\rProgress {progress_bar(iteration=iteration + 1, total=100)}",
+                flush=True,
+                end="\r",
+            )
 
+        print("\n")
         logger.info("Writing results to tables")
         attitudes_to_csv(name=f"fov{fov}_estimated_attitudes", attitudes=estimated_attitudes)
-        logger.info("\n")
 
     logger.info("Done!")

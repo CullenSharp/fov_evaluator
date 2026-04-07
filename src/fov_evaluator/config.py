@@ -18,28 +18,30 @@ class GenerateArgs:
     roll: [0 rad, 2 pi rad]ms
     """
 
-    false_stars: int = 50
-    zero_mag_photons: int = 20_000
-    saturation_photons: int = 50
     dark_current: float = 0.25
+    de_motion_blur: float = 0
     exposure: float = 0.2
-    read_noise: float = 0.02
+    false_stars: int = 50
     fov: int = 20
+    ra_motion_blur: float = 0
+    read_noise: float = 0.02
+    roll_motion_blur: float = 0
+    saturation_photons: int = 50
+    zero_mag_photons: int = 20_000
 
     # orientation params
-    ra: float = 88.0
     de: float = 0.0
+    ra: float = 88.0
     roll: float = 7.0
 
     # image size
     x_res: int = 1024
     y_res: int = 1024
 
-    def get_fname(self) -> str:
-        """Construct file name."""
-        name = f"fov{self.fov}ra{int(self.ra)}roll{int(self.roll)}de{int(self.de)}.png"
-        logger.debug("Generated filename %s:", name)
-        return name
+    @property
+    def fname(self) -> str:
+        """Construct a file name for the synthetic input."""
+        return f"fov{self.fov}ra{int(self.ra)}roll{int(self.roll)}de{int(self.de)}.png"
 
 
 @dataclass
@@ -55,8 +57,10 @@ class DatabaseArgs:
 class EstimateArgs:
     """Configuration object for generating estimates."""
 
-    centroid_algo: str = "cog"
-    star_id_algo: str = "py"
-    attitude_algo: str = "dqm"
     angular_tolerance: float = 0.03
+    attitude_algo: str = "dqm"
+    brightest_filter: int = 8
+    centroid_algo: str = "cog"
     database: str = ""
+    mag_filter: int = 5
+    star_id_algo: str = "py"

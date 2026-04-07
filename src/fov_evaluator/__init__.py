@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 def do_eval(args: argparse.Namespace) -> None:
     """Generate images and run data."""
-    if args.all:
+    if args.all and args.noisey:
+        logger.info("Running evaluation for 20, 30, and 45 deg FOV with more noise and motion blur")
+        api.comprehensive(noisey=True)
+    elif args.all:
         logger.info("Running evaluation for 20, 30, and 45 deg FOV")
         api.comprehensive()
     else:
@@ -50,6 +53,7 @@ def main() -> None:
 
     evaluate = subparsers.add_parser("eval", help="Run simulation")
     evaluate.add_argument("-a", "--all", action="store_true")
+    evaluate.add_argument("--noisey", action="store_true")
     evaluate.set_defaults(func=do_eval)
     args = parser.parse_args()
 

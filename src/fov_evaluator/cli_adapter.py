@@ -14,26 +14,34 @@ class LostCLIAdapter:
     """Translation layer to lost cli."""
 
     arg_map: ClassVar[dict[str, str]] = {
-        "false_stars": "--generate-false-stars",
-        "zero_mag_photons": "--generate-zero-mag-photons",
-        "saturation_photons": "--generate-saturation-photons",
+        # input generator args
         "dark_current": "--generate-dark-current",
+        "de": "--generate-de",
+        "de_motion_blur": "--generate-blur-de",
         "exposure": "--generate-exposure",
-        "read_noise": "--generate-read-noise",
-        "x_res": "--generate-x-resolution",
-        "y_res": "--generate-y-resolution",
+        "false_stars": "--generate-false-stars",
         "fov": "--fov",
         "ra": "--generate-ra",
-        "de": "--generate-de",
+        "ra_motion_blur": "--generate-blur-ra",
+        "read_noise": "--generate-read-noise",
         "roll": "--generate-roll",
+        "roll_motion_blur": "--generate-blur-roll",
+        "saturation_photons": "--generate-saturation-photons",
+        "x_res": "--generate-x-resolution",
+        "y_res": "--generate-y-resolution",
+        "zero_mag_photons": "--generate-zero-mag-photons",
+        # database args
         "kvector_max_distance": "--kvector-max-distance",
-        "min_mag": "--min-mag",
-        "centroid_algo": "--centroid-algo",
-        "star_id_algo": "--star-id-algo",
-        "attitude_algo": "--attitude-algo",
-        "output_path": "--output",
-        "database": "--database",
+        # estimation args
         "angular_tolerance": "--angular-tolerance",
+        "attitude_algo": "--attitude-algo",
+        "centroid_algo": "--centroid-algo",
+        "database": "--database",
+        "mag_filter": "--centroid-mag-filter",
+        "min_mag": "--min-mag",
+        "output_path": "--output",
+        "star_id_algo": "--star-id-algo",
+        "brightest_filter": "--centroid-filter-brightest",
     }
 
     @overload
@@ -72,7 +80,7 @@ class LostCLIAdapter:
             args.append("--plot-raw-input")
 
             # append file name
-            args.append(f"{Path.cwd() / 'imgs' / f'fov{cfg.fov}' / cfg.get_fname()}")
+            args.append(f"{Path.cwd() / 'imgs' / f'fov{cfg.fov}' / cfg.fname}")
 
         if isinstance(cfg, DatabaseArgs):
             # redirect arguments to the database subcommand
